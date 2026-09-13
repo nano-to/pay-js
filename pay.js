@@ -1,4 +1,4 @@
-// NanoPay 2.0.5
+// NanoPay 2.0.6
 // November 1, 2025
 // Released under MIT License
 // (c) @Nano2dev <support@nano.to>
@@ -351,7 +351,7 @@ const SecurityUtils = {
 	window.check_interval = false
 	window.expiration_interval = false
 
-	if (window.NanoPay === undefined) window.NanoPay = { version: '2.0.5' }
+	if (window.NanoPay === undefined) window.NanoPay = { version: '2.0.6' }
 
 	if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
 		window.NanoPay.dark_mode = true
@@ -982,17 +982,17 @@ const SecurityUtils = {
 			#nano-pay-shipping svg { max-width: 23px;fill: #1f9ce9;position: absolute;right: 5px;top: 0px;bottom: 0;margin: auto; }
 			#nano-pay-shipping-label, #nano-pay-contact-label { flex: 0 0 120px; letter-spacing: 0.7px; min-width: 120px; opacity: 0.5; text-align: left; }
 
-			#nano-pay-contact { box-sizing: border-box; display: flex;justify-content: start;width: 100%;padding: 15px 14px;border-bottom: 1px solid ${ window.NanoPay.dark_mode ? '#ffffff08' : '#0000000f' };position: relative;align-items: center; }
+			#nano-pay-contact { box-sizing: border-box; display: flex; gap: 16px; justify-content: start;width: 100%;padding: 15px 14px;border-bottom: 1px solid ${ window.NanoPay.dark_mode ? '#ffffff08' : '#0000000f' };position: relative;align-items: center; }
 
 			#nano-pay-contact svg {  max-width: 23px;fill: #1f9ce9;position: absolute;right: 5px;top: 0px;bottom: 0;margin: auto; }
 
-			#nano-pay-details { box-sizing: border-box; display: flex;justify-content: start;width: 100%;padding: 15px 14px;border-bottom: 1px solid ${ window.NanoPay.dark_mode ? '#ffffff08' : '#0000000f' };position: relative;align-items: flex-start; }
+			#nano-pay-details { box-sizing: border-box; display: flex; column-gap: 24px; justify-content: start;width: 100%;padding: 15px 14px;border-bottom: 1px solid ${ window.NanoPay.dark_mode ? '#ffffff08' : '#0000000f' };position: relative;align-items: flex-start; }
 
 			#nano-pay-details-spacer { letter-spacing: 0.5px; opacity: 0.5; min-width: 90px; }
 			#nano-pay-details-labels { flex: 1 1 auto; min-width: 0; line-height: 1.2; text-align: left; }
 			#nano-pay-details-values { flex: 0 0 135px; min-width: 135px; line-height: 1.2; text-align: right; }
 			#nano-pay-details-labels > div, #nano-pay-details-values > div { margin: 3px 0; }
-			#nano-pay-details-values { opacity: 1; margin-left: 20px; }
+			#nano-pay-details-values { opacity: 1; margin-left: 0; }
 
 			#nano-pay-submit { cursor: pointer; display: flex; flex-direction: column; align-items: center; margin: 15px 0 18px 0; text-decoration: none; color: inherit; text-align: center;  }
 
