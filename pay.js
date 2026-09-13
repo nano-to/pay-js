@@ -712,12 +712,12 @@ const SecurityUtils = {
     		return alert('NanoPay: Invalid Nano address format.')
     	}
     	
-    	if (config.title && typeof config.title !== 'string') {
-    		config.title = SecurityUtils.sanitizeInput(config.title)
+    	if (config.title) {
+    		config.title = SecurityUtils.sanitizeInput(String(config.title))
     	}
     	
-    	if (config.description && typeof config.description !== 'string') {
-    		config.description = SecurityUtils.sanitizeInput(config.description)
+    	if (config.description) {
+    		config.description = SecurityUtils.sanitizeInput(String(config.description))
     	}
 
     	if (typeof config === 'string' && config.includes('el-')) {
