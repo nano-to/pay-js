@@ -1,4 +1,4 @@
-// NanoPay 2.0.4
+// NanoPay 2.0.5
 // November 1, 2025
 // Released under MIT License
 // (c) @Nano2dev <support@nano.to>
@@ -351,7 +351,7 @@ const SecurityUtils = {
 	window.check_interval = false
 	window.expiration_interval = false
 
-	if (window.NanoPay === undefined) window.NanoPay = { version: '2.0.4' }
+	if (window.NanoPay === undefined) window.NanoPay = { version: '2.0.5' }
 
 	if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
 		window.NanoPay.dark_mode = true
@@ -1000,6 +1000,9 @@ const SecurityUtils = {
 
 			#nano-pay-qrcode { display: flex;width: 100%;justify-content: center;border-bottom: 1px solid ${ window.NanoPay.dark_mode ? '#ffffff08' : '#0000000f' };padding-bottom: 20px; align-items: center; flex-direction: column }
 			#nano-pay-qrcode-image {max-width: 140px; margin-top: 20px; border-bottom: 1px solid ${ window.NanoPay.dark_mode ? '#ffffff08' : '#0000000f' }; background: #FFF; padding: 5px; border-radius: 5px;}
+			#nano-pay-payment-details, #nano-pay-shipping-input, #nano-pay-email-input { transition: opacity .2s ease, transform .2s ease; }
+			.nano-pay-view-enter { animation: nano-pay-view-in .2s ease both; }
+			@keyframes nano-pay-view-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 			#nano-pay-select-one, #nano-pay-custom-input-one { color: inherit; max-width: 285px; min-width: 135px; background: transparent; border: 1px solid ${ window.NanoPay.dark_mode ? '#ffffff12' : '#00000045' }; height: 30px; border-radius: 5px; padding: 0 3px; }
 
@@ -1019,11 +1022,9 @@ const SecurityUtils = {
 
 			#nano-pay-user-contact-email, #nano-pay-user-mailing-address { flex: 1 1 auto; line-height: 1.1; margin-left: 16px; max-width: none; min-width: 0; padding-right: 28px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-			#nano-pay-shipping-input input, #nano-pay-shipping-input select { width: 100%; margin-bottom: 10px; box-sizing: border-box; display: block; min-height: 40px; appearance: none; border: 1px solid ${ window.NanoPay.dark_mode ? '#ffffff54' : '#00000054' }; background: transparent; color: ${ window.NanoPay.dark_mode ? '#FFF' : '#000' }; padding: 10px; border-radius: 5px; font-size: 14px }
+			#nano-pay-shipping-input input, #nano-pay-shipping-input select, #nano-pay-email-input input { width: 100%; margin-bottom: 10px; box-sizing: border-box; display: block; min-height: 40px; appearance: none; border: 1px solid ${ window.NanoPay.dark_mode ? '#ffffff54' : '#00000054' }; background: transparent; color: inherit; font-family: inherit; font-size: 16px; line-height: 1.25; padding: 10px; border-radius: 5px; }
 
 			#nano-pay-save-shipping { text-align: center; border: 0; color: #FFF; padding: 12px 10px; border-radius: 5px; background: #209ce9; margin-top: 15px; }
-
-			#nano-pay-email-input input { width: 100%; margin-bottom: 10px; box-sizing: border-box; display: block; min-height: 40px; appearance: none; border: 1px solid ${ window.NanoPay.dark_mode ? '#FFFFFF54' : '#FFFFFF54' }; background: transparent; color: ${ window.NanoPay.dark_mode ? '#000' : '#FFF' }; padding: 10px; border-radius: 5px; font-size: 14px }
 
 			#nano-pay-save-email { text-align: center; border: 0; color: #FFF; padding: 12px 10px; border-radius: 5px; background: #209ce9; margin-top: 15px; cursor: pointer; }
 
@@ -1108,7 +1109,7 @@ const SecurityUtils = {
 		</div>
 
 		<div style="padding: 15px 20px 19px;">
-			<input id="nano-pay-email-field" onchange="window.NanoPay.onchange_email(this)" value="${window.NanoPay.config.contact_email || ''}" placeholder="Enter your email address" style="width: 100%; margin-bottom: 15px;"></input>
+			<input id="nano-pay-email-field" type="email" autocomplete="email" onchange="window.NanoPay.onchange_email(this)" value="${window.NanoPay.config.contact_email || ''}" placeholder="Enter your email address"></input>
 			<div id="nano-pay-save-email" onclick="window.NanoPay.saveEmail()">Save</div>
 		</div>
 
@@ -1391,6 +1392,24 @@ const SecurityUtils = {
 		return `${address.first_name} ${address.last_name} <br> ${address.street_address} ${address.street_address_two} <br> ${address.city}, ${address.state}, ${address.postal_code}, ${address.country}`
 	}
 
+    function showPaymentView(viewId) {
+        var viewIds = ['nano-pay-payment-details', 'nano-pay-shipping-input', 'nano-pay-email-input']
+        var activeView = document.getElementById(viewId)
+
+        viewIds.forEach((id) => {
+            var view = document.getElementById(id)
+            if (!view) return
+            view.style.display = id === viewId ? 'block' : 'none'
+            view.classList.remove('nano-pay-view-enter')
+        })
+
+        if (activeView) {
+            var animate = () => activeView.classList.add('nano-pay-view-enter')
+            if (window.requestAnimationFrame) window.requestAnimationFrame(animate)
+            else setTimeout(animate, 0)
+        }
+    }
+
     window.NanoPay.saveShipping = async () => {
 
     	if (window.NanoPay.config.shipping && 
@@ -1415,8 +1434,7 @@ const SecurityUtils = {
 			}
 		}
 
-		document.getElementById('nano-pay-payment-details').style.display = 'block'
-		document.getElementById('nano-pay-shipping-input').style.display = 'none'
+		showPaymentView('nano-pay-payment-details')
 
 		SecurityUtils.secureStorage.setItem('nano-pay-mailing-address', JSON.stringify(window.NanoPay.config.mailing_address))
 
@@ -1428,26 +1446,22 @@ const SecurityUtils = {
     }
 
     window.NanoPay.openShipping = async () => {
-		document.getElementById('nano-pay-payment-details').style.display = 'none'
-		document.getElementById('nano-pay-shipping-input').style.display = 'block'
+		showPaymentView('nano-pay-shipping-input')
 		return
     }
 
     window.NanoPay.cancelShipping = async () => {
-		document.getElementById('nano-pay-payment-details').style.display = 'block'
-		document.getElementById('nano-pay-shipping-input').style.display = 'none'
+		showPaymentView('nano-pay-payment-details')
 		return
     }
 
     window.NanoPay.openEmailInput = async () => {
-		document.getElementById('nano-pay-payment-details').style.display = 'none'
-		document.getElementById('nano-pay-email-input').style.display = 'block'
+		showPaymentView('nano-pay-email-input')
 		return
     }
 
     window.NanoPay.cancelEmailInput = async () => {
-		document.getElementById('nano-pay-payment-details').style.display = 'block'
-		document.getElementById('nano-pay-email-input').style.display = 'none'
+		showPaymentView('nano-pay-payment-details')
 		return
     }
 
@@ -1561,8 +1575,7 @@ const SecurityUtils = {
 
 		if (window.NanoPay.config.localstorage !== false) SecurityUtils.secureStorage.setItem('nano-pay-contact-email', window.NanoPay.config.contact_email)
 		
-		document.getElementById('nano-pay-payment-details').style.display = 'block'
-		document.getElementById('nano-pay-email-input').style.display = 'none'
+		showPaymentView('nano-pay-payment-details')
 
 		document.getElementById('nano-pay-user-contact-email').innerText = window.NanoPay.config.contact_email
 		document.getElementById('nano-pay-user-contact-email').style.opacity = '1'
