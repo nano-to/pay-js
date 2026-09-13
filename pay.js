@@ -40,6 +40,8 @@ const SecurityUtils = {
     // Validate Nano address format (more lenient for demos)
     validateNanoAddress: (address) => {
         if (!address || typeof address !== 'string') return false;
+        // Nano.to usernames are resolved by the checkout backend.
+        if (/^@[a-z0-9][a-z0-9._-]*$/i.test(address.trim())) return true;
         // Allow demo addresses that start with nano_1demo
         if (address.startsWith('nano_1demo')) return true;
         // Standard Nano address validation
@@ -617,7 +619,7 @@ const SecurityUtils = {
         		return
         	}
 
-            var code = `<div onclick="window.NanoPay.unlock_request('${config.title || 'Pay'}', '${config.element}', '${config.amount}', '${config.address}', '${config.notify}', '${articleId}', '${config.unique || config.cloud}')" class="nano-pay-unlock-button"><img style="" src="https://wall.nano.to/img/xno.svg" alt="">${ config.button || 'Unlock with Nano' }</div></div>`
+            var code = `<div onclick="window.NanoPay.unlock_request('${config.title || 'Pay'}', '${config.element}', '${config.amount}', '${config.address}', '${config.notify}', '${articleId}', '${config.unique || config.cloud}')" class="nano-pay-unlock-button"><img style="" src="https://cdn.nano.to/img/xno.svg" alt="">${ config.button || 'Unlock with Nano' }</div></div>`
 
             if (config.free) {
             	payment_success = true
@@ -865,9 +867,9 @@ const SecurityUtils = {
 					config.disclaimer = 'Username taken. Only original owner can add time.'
 				}
 
-				if (rpc_checkout.error) {
-					show_loading(false)
-					return alert("NanoPay: " + rpc_checkout.message || rpc_checkout.error)
+						if (rpc_checkout.error) {
+							show_loading(false)
+							return alert("NanoPay: " + (rpc_checkout.message || rpc_checkout.error))
 				}
 
     			var default_plan = 1
@@ -890,9 +892,9 @@ const SecurityUtils = {
     			
     			rpc_checkout = (await RPC.post('https://api.nano.to', aliasRequestData))
 
-    			if (rpc_checkout.error) {
-    				show_loading(false)
-    				return alert("NanoPay: " + rpc_checkout.message || rpc_checkout.error)
+				if (rpc_checkout.error) {
+					show_loading(false)
+					return alert("NanoPay: " + (rpc_checkout.message || rpc_checkout.error))
     			}
 
     			window.NanoPay.config.require_alias = true
@@ -945,7 +947,7 @@ const SecurityUtils = {
     	}
 
 		if (amount && !rpc_checkout.amount_raw) {
-			alert("NanoPay: " + rpc_checkout.message || 'Checkout Error. Please contact support@nano.to with error code #112')
+			alert("NanoPay: " + (rpc_checkout.message || rpc_checkout.error || 'Checkout Error. Please contact support@nano.to with error code #112'))
 			show_loading(false)
 			return 
 		}
