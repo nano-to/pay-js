@@ -1,4 +1,4 @@
-// NanoPay 2.0.6
+// NanoPay 2.0.8
 // November 1, 2025
 // Released under MIT License
 // (c) @Nano2dev <support@nano.to>
@@ -351,7 +351,7 @@ const SecurityUtils = {
 	window.check_interval = false
 	window.expiration_interval = false
 
-	if (window.NanoPay === undefined) window.NanoPay = { version: '2.0.6' }
+	if (window.NanoPay === undefined) window.NanoPay = { version: '2.0.8' }
 
 	if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
 		window.NanoPay.dark_mode = true
@@ -990,7 +990,7 @@ const SecurityUtils = {
 
 			#nano-pay-details-spacer { letter-spacing: 0.5px; opacity: 0.5; min-width: 90px; }
 			#nano-pay-details-labels { flex: 1 1 auto; min-width: 0; line-height: 1.2; text-align: left; }
-			#nano-pay-details-values { flex: 0 0 135px; min-width: 135px; line-height: 1.2; text-align: right; }
+			#nano-pay-details-values { flex: 0 0 auto; min-width: 135px; line-height: 1.2; text-align: right; white-space: nowrap; }
 			#nano-pay-details-labels > div, #nano-pay-details-values > div { margin: 3px 0; }
 			#nano-pay-details-values { opacity: 1; margin-left: 0; }
 
@@ -1100,10 +1100,10 @@ const SecurityUtils = {
 			<div id="nano-pay-header">
 				<svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
 				<circle cx="540" cy="540" r="540" fill="#209CE9"/>
-				<path d="M540 270C405 270 270 405 270 540C270 675 405 810 540 810C675 810 810 675 810 540C810 405 675 270 540 270ZM540 720C450 720 360 630 360 540C360 450 450 360 540 360C630 360 720 450 720 540C720 630 630 720 540 720Z" fill="white"/>
-				<path d="M540 450C495 450 450 495 450 540C450 585 495 630 540 630C585 630 630 585 630 540C630 495 585 450 540 450Z" fill="white"/>
+				<path d="M792.911 881H740.396L541.099 570.561L338.761 881H286.68L513.452 529.3L306.882 206.222H360.42L541.95 490.393L727.322 206.222H777.555L568.762 528.379L792.911 881Z" fill="white"/>
+				<path d="M336.487 508.737H744.807V547.116H336.487V508.737ZM336.487 623.872H744.824V662.251H336.47L336.487 623.872Z" fill="white"/>
 				</svg>
-				<span>Email Address</span>
+				<span>Pay</span>
 			</div>
 			<div id="nano-pay-cancel" onclick="window.NanoPay.cancelEmailInput(); return">Cancel</div> 
 		</div>
@@ -1598,7 +1598,7 @@ const SecurityUtils = {
 	
             window.NanoPay.el = {}
 
-            var buttonCssContent = `.nano-pay-button { cursor: pointer; padding: 7px 25px; border-radius: 4px; margin: 15px 0 10px 0; display: flex ; align-items: center; justify-content: center; background: #1f9ce9; font-family: Helvetica, 'Arial'; letter-spacing: 1px; min-height: 48px; color: ${config.color || '#FFF'}; } .nano-pay-button img { max-width: 24px;width: auto;min-width: auto;margin: 0 8px 0 0!important;float: none; border: 1px solid; border-radius: 50% }`
+            var buttonCssContent = `.nano-pay-button { cursor: pointer; width: 100%; box-sizing: border-box; padding: 14px 25px; border: 0; border-radius: 10px; margin: 15px 0 10px 0; display: flex; align-items: center; justify-content: center; gap: 12px; background: #209ce9; font-family: inherit; font-size: 18px; letter-spacing: 1px; min-height: 64px; color: ${config.color || '#FFF'}; } .nano-pay-button img { max-width: 28px; width: 28px; height: 28px; margin: 0!important; float: none; border: 1px solid; border-radius: 50%; }`
 
             addStyleIfNotExists(buttonCssContent);
 
