@@ -1,4 +1,4 @@
-// NanoPay 2.0.11
+// NanoPay 2.0.12
 // November 1, 2025
 // Released under MIT License
 // (c) @Nano2dev <support@nano.to>
@@ -351,7 +351,7 @@ const SecurityUtils = {
 	window.check_interval = false
 	window.expiration_interval = false
 
-	if (window.NanoPay === undefined) window.NanoPay = { version: '2.0.11' }
+	if (window.NanoPay === undefined) window.NanoPay = { version: '2.0.12' }
 
 	if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
 		window.NanoPay.dark_mode = true
@@ -1045,7 +1045,7 @@ const SecurityUtils = {
 		cssContent += `
 			@media (max-width: 480px) {
 				#nano-pay { box-sizing: border-box; padding: 12px; }
-				#nano-pay-body { top: 12px; right: 12px; bottom: auto; left: 12px; width: auto; max-height: calc(100% - 24px); overflow-y: auto; border-radius: 16px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18); }
+				#nano-pay-body { top: 12px; right: 12px; bottom: auto; left: 12px; width: auto; height: fit-content; max-height: calc(100% - 24px); overflow-y: auto; border-radius: 16px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18); }
 				#nano-pay-header-container { padding: 15px 18px; }
 				#nano-pay-shipping, #nano-pay-contact { padding: 14px 18px; }
 				#nano-pay-shipping-label, #nano-pay-contact-label { flex: 0 0 82px; min-width: 82px; }
