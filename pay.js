@@ -1042,6 +1042,20 @@ const SecurityUtils = {
 			cssContent += `#nano-pay-body { top: -100%; bottom: auto; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; border-top-left-radius: 0; border-top-right-radius: 0; }`
 		}
 
+		cssContent += `
+			@media (max-width: 480px) {
+				#nano-pay { box-sizing: border-box; padding: 12px; }
+				#nano-pay-body { top: 12px; bottom: auto; width: 100%; max-height: calc(100% - 24px); overflow-y: auto; border-radius: 16px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18); }
+				#nano-pay-header-container { padding: 15px 18px; }
+				#nano-pay-shipping, #nano-pay-contact { padding: 14px 18px; }
+				#nano-pay-shipping-label, #nano-pay-contact-label { flex: 0 0 82px; min-width: 82px; }
+				#nano-pay-details { column-gap: 12px; padding: 15px 18px; }
+				#nano-pay-details-spacer { min-width: 0; flex: 0 0 0; }
+				#nano-pay-details-values { min-width: 0; max-width: 54%; white-space: normal; }
+				#nano-pay-details-values > div { overflow-wrap: anywhere; }
+			}
+		`;
+
 		addStyleIfNotExists(cssContent);
 
 		window.NanoPay.config.contact_email = config.email || SecurityUtils.secureStorage.getItem('nano-pay-contact-email')
