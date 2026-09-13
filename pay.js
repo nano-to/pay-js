@@ -1,4 +1,4 @@
-// NanoPay 2.0.14
+// NanoPay 2.0.15
 // November 1, 2025
 // Released under MIT License
 // (c) @Nano2dev <support@nano.to>
@@ -351,7 +351,7 @@ const SecurityUtils = {
 	window.check_interval = false
 	window.expiration_interval = false
 
-	if (window.NanoPay === undefined) window.NanoPay = { version: '2.0.14' }
+	if (window.NanoPay === undefined) window.NanoPay = { version: '2.0.15' }
 
 	if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
 		window.NanoPay.dark_mode = true
@@ -1073,9 +1073,15 @@ const SecurityUtils = {
 			config.onShippingUpdate(window.NanoPay.config.mailing_address, window.NanoPay.updateShipping)
 		}
 
+		var initial_body_position = position === 'top'
+			? 'top: -100%; bottom: auto;'
+			: position === 'bottom'
+				? 'top: auto; bottom: -100%;'
+				: 'top: auto; bottom: auto;'
+
 		var template = `<div id="nano-pay-backdrop" onclick="window.NanoPay.cancel(); return"></div>
 
-<div id="nano-pay-body">
+<div id="nano-pay-body" style="${initial_body_position}">
 
 	<div id="nano-pay-shipping-input" style="width: 100%; display: none">
 
