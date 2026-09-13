@@ -1,6 +1,6 @@
 ![line](https://raw.githubusercontent.com/nano-to/nano-node-cli/main/.github/line.png)
 
-<h1 align="center">NanoPay.js 2.0.3</h1>
+<h1 align="center">NanoPay.js 2.0.4</h1>
 
 <h3 align="center">The Ultimate Nano Currency Payment Library</h3>
 
@@ -10,7 +10,7 @@
 </p>
 
 <div align="center">
-  <img src="https://img.shields.io/badge/Version-2.0.3-blue.svg" alt="Version 2.0.3">
+  <img src="https://img.shields.io/badge/Version-2.0.4-blue.svg" alt="Version 2.0.4">
   <img src="https://img.shields.io/badge/Security-Enhanced-green.svg" alt="Enhanced Security">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Updated-January%202025-brightgreen.svg" alt="Updated January 2025">
@@ -18,7 +18,7 @@
 
 ![line](https://github.com/fwd/n2/raw/master/.github/line.png)
 
-## 🆕 What's New in 2.0.3
+## 🆕 What's New in 2.0.4
 
 - 🐛 **Enhanced Security** - Comprehensive input validation and XSS protection
 - 🛒 **Advanced Line Items** - Support for quantities, variants, descriptions, and images
@@ -629,7 +629,7 @@ window.NanoPay.open({
 
 ### Enterprise-Grade Security
 
-NanoPay 2.0.3 includes comprehensive security features to protect your users and your application:
+NanoPay 2.0.4 includes comprehensive security features to protect your users and your application:
 
 #### **XSS Protection**
 - All user content is sanitized before rendering
@@ -712,7 +712,7 @@ A: Set `debug: true` in your payment configuration. Debug buttons will appear be
 A: Ensure your line items array is properly formatted with required fields (name, price) and optional fields (quantity, variants, description, image).
 
 **Q: Enhanced features not available?**
-A: Make sure you're using NanoPay 2.0.3 or later. Check the version with `window.NanoPay.version`.
+A: Make sure you're using NanoPay 2.0.4 or later. Check the version with `window.NanoPay.version`.
 
 ### Debug Mode
 
