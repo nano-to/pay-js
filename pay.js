@@ -14,12 +14,6 @@ const SecurityUtils = {
         return div.innerHTML;
     },
     
-    // Safe HTML insertion for templates (allows HTML but escapes user content)
-    safeTemplateHTML: (template) => {
-        // For templates, we trust the template but escape user-provided content
-        return template;
-    },
-    
     // Format QR code data for display
     formatQRCode: (qrcodeData) => {
         if (!qrcodeData) return '';
@@ -62,6 +56,25 @@ const SecurityUtils = {
             };
             return escapeMap[match];
         });
+    },
+
+    // Convert arbitrary display values into text that is safe in HTML and attributes.
+    escapeHTML: (value) => SecurityUtils.sanitizeInput(String(value ?? '')),
+
+    sanitizeColor: (value, fallback) => {
+        const style = document.createElement('span').style;
+        style.color = String(value || '');
+        return style.color || fallback;
+    },
+
+    sanitizeImageURL: (value) => {
+        if (!value) return '';
+        try {
+            const url = new URL(String(value), window.location.href);
+            return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
+        } catch (error) {
+            return '';
+        }
     },
     
     // Validate amount
@@ -598,14 +611,14 @@ const SecurityUtils = {
 
     	original_config = config
 
-    	var buttonCSS = `.nano-pay-unlock-button { cursor: pointer;padding: 7px 25px;border-radius: 4px;margin: 15px 0 10px 0;display: flex;align-items: center;justify-content: center;background: #ffffff;font-family: Helvetica, 'Arial';letter-spacing: 1px;min-height: 48px; color: ${config.color || '#000'} }
+		var buttonCSS = `.nano-pay-unlock-button { cursor: pointer;padding: 7px 25px;border-radius: 4px;margin: 15px 0 10px 0;display: flex;align-items: center;justify-content: center;background: #ffffff;font-family: Helvetica, 'Arial';letter-spacing: 1px;min-height: 48px; color: ${SecurityUtils.sanitizeColor(config.color, '#000')} }
     		.nano-pay-unlock-button img { max-width: 24px;width: auto;min-width: auto;margin: 0 8px 0 0!important;float: none; }
     		.nano-pay-free-read { text-align: center }
     		.nano-pay-free-read hr { margin: 20px 0 15px 0; }`
 
     	addStyleIfNotExists(buttonCSS);
 
-        for (var i=0, max=all.length; i < max; i++) {
+        for (let i=0, max=all.length; i < max; i++) {
 
             var item = all[i]
 
@@ -619,14 +632,26 @@ const SecurityUtils = {
         		return
         	}
 
-            var code = `<div onclick="window.NanoPay.unlock_request('${config.title || 'Pay'}', '${config.element}', '${config.amount}', '${config.address}', '${config.notify}', '${articleId}', '${config.unique || config.cloud}')" class="nano-pay-unlock-button"><img style="" src="https://cdn.nano.to/img/xno.svg" alt="">${ config.button || 'Unlock with Nano' }</div></div>`
+            item.innerHTML = ''
+            var unlockButton = document.createElement('div')
+            unlockButton.className = 'nano-pay-unlock-button'
+            var unlockIcon = document.createElement('img')
+            unlockIcon.src = 'https://cdn.nano.to/img/xno.svg'
+            unlockIcon.alt = ''
+            unlockButton.appendChild(unlockIcon)
+            unlockButton.appendChild(document.createTextNode(config.button || 'Unlock with Nano'))
+            unlockButton.addEventListener('click', () => window.NanoPay.unlock_request(config.title || 'Pay', config.element, config.amount, config.address, config.notify, articleId, config.unique || config.cloud))
+            item.appendChild(unlockButton)
 
             if (config.free) {
             	payment_success = true
-                code += `<div class="nano-pay-free-read" onclick="window.NanoPay.unlock_content('${config.element}')"><hr>${ config.free_text ? config.free_text : 'Free Read' }</div>`
-            } 
-
-            all[i].innerHTML = SecurityUtils.safeTemplateHTML(code)
+                var freeRead = document.createElement('div')
+                freeRead.className = 'nano-pay-free-read'
+                freeRead.appendChild(document.createElement('hr'))
+                freeRead.appendChild(document.createTextNode(config.free_text || 'Free Read'))
+                freeRead.addEventListener('click', () => window.NanoPay.unlock_content(config.element))
+                item.appendChild(freeRead)
+            }
 
             item.style.display = config.display || 'block'
 
@@ -726,9 +751,9 @@ const SecurityUtils = {
 
     	if (!window.NanoPay.config && config) window.NanoPay.config = config
 
-    	var background = config.background || (window.NanoPay.dark_mode ? '#282c37' : 'rgb(247, 247, 247)')
-    	var backdrop_background = config.backdrop || (window.NanoPay.dark_mode ? '#1f1e1ee0' : 'rgb(0 0 0 / 45%)')
-    	var text_color = config.text || (window.NanoPay.dark_mode ? '#FFF' : '#000')
+		var background = SecurityUtils.sanitizeColor(config.background, window.NanoPay.dark_mode ? '#282c37' : 'rgb(247, 247, 247)')
+		var backdrop_background = SecurityUtils.sanitizeColor(config.backdrop, window.NanoPay.dark_mode ? '#1f1e1ee0' : 'rgb(0 0 0 / 45%)')
+		var text_color = SecurityUtils.sanitizeColor(config.text, window.NanoPay.dark_mode ? '#FFF' : '#000')
     	var position = config.position || 'bottom'
     	var button = config.button || 'Open'
     	var symbol = config.symbol || 'NANO'
@@ -756,6 +781,8 @@ const SecurityUtils = {
     	var cloud = config.unique || config.cloud || undefined
     	var countries = config.contries || shipping_countries
 
+        const html = SecurityUtils.escapeHTML
+
     	var wallets = {
     		nault: { image: 'https://cdn.nano.to/img/nault.png', name: 'Nault' },
     		natrium: { image: 'https://cdn.nano.to/img/natrium.png', name: 'Natrium' },
@@ -774,8 +801,8 @@ const SecurityUtils = {
     		quantity: config.strings && config.strings.quantity ? config.strings.quantity : 'Amount',
     		alias: config.strings && config.strings.alias ? config.strings.alias : 'Name',
     		account: config.strings && config.strings.account ? config.strings.account : 'Account',
-    		email_placeholder: config.strings && config.strings.email_placeholder ? config.strings.email_placeholder : 'Required <span style="color: red">*</span>',
-    		shipping_placeholder: config.strings && config.strings.shipping_placeholder ? config.strings.shipping_placeholder : 'Required <span style="color: red">*</span>',
+			email_placeholder: config.strings && config.strings.email_placeholder ? config.strings.email_placeholder : 'Required *',
+			shipping_placeholder: config.strings && config.strings.shipping_placeholder ? config.strings.shipping_placeholder : 'Required *',
     	}
 
 		window.NanoPay.updateShipping = async (new_shipping) => {
@@ -1099,16 +1126,16 @@ const SecurityUtils = {
 
 		<div style="padding: 15px 20px 19px;">
 			<div style="display: flex; justify-content: space-between; align-items: center">
-				<input onchange="window.NanoPay.onchange_shipping(this, 'first_name')" value="${window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.first_name : ''}" placeholder="First Name" style="margin-right: 10px"></input>
-				<input onchange="window.NanoPay.onchange_shipping(this, 'last_name')" value="${window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.last_name : ''}" placeholder="Last Name"></input>
+				<input onchange="window.NanoPay.onchange_shipping(this, 'first_name')" value="${html(window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.first_name : '')}" placeholder="First Name" style="margin-right: 10px"></input>
+				<input onchange="window.NanoPay.onchange_shipping(this, 'last_name')" value="${html(window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.last_name : '')}" placeholder="Last Name"></input>
 			</div>
-			<input onchange="window.NanoPay.onchange_shipping(this, 'street_address')" value="${window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.street_address : ''}" placeholder="Street Address"></input>
-			<input onchange="window.NanoPay.onchange_shipping(this, 'street_address_two')" value="${window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.street_address_two : ''}" placeholder="Apt., Ste., Bldg."></input>
-			<input onchange="window.NanoPay.onchange_shipping(this, 'city')" value="${window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.city : ''}" placeholder="City"></input>
-			<input onchange="window.NanoPay.onchange_shipping(this, 'state')" value="${window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.state : ''}" placeholder="State"></input>
-			<input onchange="window.NanoPay.onchange_shipping(this, 'postal_code')" value="${window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.postal_code : ''}" placeholder="Zip Code"></input>
+			<input onchange="window.NanoPay.onchange_shipping(this, 'street_address')" value="${html(window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.street_address : '')}" placeholder="Street Address"></input>
+			<input onchange="window.NanoPay.onchange_shipping(this, 'street_address_two')" value="${html(window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.street_address_two : '')}" placeholder="Apt., Ste., Bldg."></input>
+			<input onchange="window.NanoPay.onchange_shipping(this, 'city')" value="${html(window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.city : '')}" placeholder="City"></input>
+			<input onchange="window.NanoPay.onchange_shipping(this, 'state')" value="${html(window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.state : '')}" placeholder="State"></input>
+			<input onchange="window.NanoPay.onchange_shipping(this, 'postal_code')" value="${html(window.NanoPay.config.mailing_address ? window.NanoPay.config.mailing_address.postal_code : '')}" placeholder="Zip Code"></input>
 			<select onchange="window.NanoPay.onchange_shipping(this, 'country')">
-				${ countries.map((a, i) => '<option '+(window.NanoPay.config.mailing_address && window.NanoPay.config.mailing_address.country === a.code ? "selected" : "")+' value="'+a.code+'">'+a.name+'</option>').join('\n') }
+				${ countries.map((a, i) => '<option '+(window.NanoPay.config.mailing_address && window.NanoPay.config.mailing_address.country === a.code ? "selected" : "")+' value="'+html(a.code)+'">'+html(a.name)+'</option>').join('\n') }
 			</select>
 			<div id="nano-pay-save-shipping" onclick="window.NanoPay.saveShipping()">Save</div>
 		</div>
@@ -1130,7 +1157,7 @@ const SecurityUtils = {
 		</div>
 
 		<div style="padding: 15px 20px 19px;">
-			<input id="nano-pay-email-field" type="email" autocomplete="email" onchange="window.NanoPay.onchange_email(this)" value="${window.NanoPay.config.contact_email || ''}" placeholder="Enter your email address"></input>
+			<input id="nano-pay-email-field" type="email" autocomplete="email" onchange="window.NanoPay.onchange_email(this)" value="${html(window.NanoPay.config.contact_email || '')}" placeholder="Enter your email address"></input>
 			<div id="nano-pay-save-email" onclick="window.NanoPay.saveEmail()">Save</div>
 		</div>
 
@@ -1153,18 +1180,18 @@ const SecurityUtils = {
 		</div>
 
 		<div style="display: ${(rpc_checkout.plans || get_name) && rpc_checkout.amount ? 'flex' : 'none'};justify-content: space-between;" id="nano-pay-contact"> 
-			<div id="nano-pay-contact-label">${strings.quantity}</div> 
+			<div id="nano-pay-contact-label">${html(strings.quantity)}</div>
 			<div id="nano-pay-line-items" style="line-height: 1.3;">
-				<select id="nano-pay-select-one" value="1, ${symbol}" onchange="window.NanoPay.onchange_select_one(this)">
-					${ rpc_checkout.plans ? rpc_checkout.plans.map((a, i) => '<option '+ (i === 1 ? 'selected' : '') +' value="'+i+', '+symbol+'">'+a.title+'</option>').join('') : '' }
+				<select id="nano-pay-select-one" value="1, ${html(symbol)}" onchange="window.NanoPay.onchange_select_one(this)">
+					${ rpc_checkout.plans ? rpc_checkout.plans.map((a, i) => '<option '+ (i === 1 ? 'selected' : '') +' value="'+i+', '+html(symbol)+'">'+html(a.title)+'</option>').join('') : '' }
 				</select>
 			</div> 
 		</div>
 
 		<div style="display: ${window.NanoPay.config.require_alias ? 'flex' : 'none'};justify-content: space-between;" id="nano-pay-contact"> 
-			<div id="nano-pay-contact-label">${strings.alias}<sup style="color: #ff5f5f; opacity: 1">*</sup></div> 
+			<div id="nano-pay-contact-label">${html(strings.alias)}<sup style="color: #ff5f5f; opacity: 1">*</sup></div>
 			<div id="nano-pay-line-items" style="line-height: 1.3;">
-				<input id="nano-pay-custom-input-one" oninput="window.NanoPay.onchange_custom_input_one(this)" type="text" placeholder="Custom Alias" value="${window.NanoPay.config.provided_alias || ''}">
+				<input id="nano-pay-custom-input-one" oninput="window.NanoPay.onchange_custom_input_one(this)" type="text" placeholder="Custom Alias" value="${html(window.NanoPay.config.provided_alias || '')}">
 			</div> 
 		</div>
 
@@ -1182,15 +1209,15 @@ const SecurityUtils = {
 						line-height: 1.4;
 						box-sizing: border-box;
 					">
-						${item.image ? `<img src="${item.image}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 12px; flex-shrink: 0;" alt="${item.title || item.name}">` : ''}
+						${SecurityUtils.sanitizeImageURL(item.image) ? `<img src="${html(SecurityUtils.sanitizeImageURL(item.image))}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 12px; flex-shrink: 0;" alt="${html(item.title || item.name)}">` : ''}
 						<div style="flex: 1; min-width: 0;">
-							<div style="font-weight: 500; margin-bottom: 2px; color: ${text_color};">${item.title || item.name}</div>
-							${item.variants ? `<div style="font-size: 90%; opacity: 0.8; margin-bottom: 2px;">${Object.entries(item.variants).map(([key, value]) => `${ String(key).charAt(0).toUpperCase() + String(key).slice(1) }: ${value}`).join(', ')}</div>` : ''}
-							${item.description ? `<div style="font-size: 90%; opacity: 0.6;">${item.description}</div>` : ''}
+							<div style="font-weight: 500; margin-bottom: 2px; color: ${text_color};">${html(item.title || item.name)}</div>
+							${item.variants ? `<div style="font-size: 90%; opacity: 0.8; margin-bottom: 2px;">${html(Object.entries(item.variants).map(([key, value]) => `${String(key).charAt(0).toUpperCase() + String(key).slice(1)}: ${value}`).join(', '))}</div>` : ''}
+							${item.description ? `<div style="font-size: 90%; opacity: 0.6;">${html(item.description)}</div>` : ''}
 						</div>
 						<div style="text-align: right; margin-left: 8px; flex-shrink: 0;">
-							${item.quantity ? `<div style="font-size: 90%; opacity: 0.8; margin-bottom: 2px;">Qty: ${item.quantity}</div>` : ''}
-							<div style="font-weight: 500; color: ${text_color};">${item.price} ${symbol}</div>
+							${item.quantity ? `<div style="font-size: 90%; opacity: 0.8; margin-bottom: 2px;">Qty: ${html(item.quantity)}</div>` : ''}
+							<div style="font-weight: 500; color: ${text_color};">${html(item.price)} ${html(symbol)}</div>
 						</div>
 					</div>
 				`).join('') : ''}
@@ -1198,62 +1225,62 @@ const SecurityUtils = {
 		</div>
 
 		<div style="display: ${config.contact ? 'flex' : 'none'}" onclick="window.NanoPay.configEmailAddress()" id="nano-pay-contact"> 
-			<div id="nano-pay-contact-label">${strings.email}</div> 
-			<div id="nano-pay-user-contact-email" style="opacity: ${window.NanoPay.config.contact_email ? '1' : '0.5'}">${window.NanoPay.config.contact_email || strings.email_placeholder}</div> 
+			<div id="nano-pay-contact-label">${html(strings.email)}</div>
+			<div id="nano-pay-user-contact-email" style="opacity: ${window.NanoPay.config.contact_email ? '1' : '0.5'}">${html(window.NanoPay.config.contact_email || strings.email_placeholder)}</div>
 			<svg id="Layer_1" version="1.1" viewBox="0 0 512 512" width="512px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><polygon points="160,115.4 180.7,96 352,256 180.7,416 160,396.7 310.5,256 "></polygon></svg> 
 		</div>
 		
 		<div style="display: ${config.shipping || config.shipping === true || config.shipping === "true" ? 'flex' : 'none'}" onclick="window.NanoPay.openShipping()" id="nano-pay-shipping"> 
-			<div id="nano-pay-shipping-label">${strings.shipping}</div> 
-			<div id="nano-pay-user-mailing-address" style="opacity: ${window.NanoPay.config.mailing_address && window.NanoPay.config.mailing_address.first_name ? '1' : '0.5'}">${window.NanoPay.config.mailing_address && window.NanoPay.config.mailing_address.first_name ? fullAddress(window.NanoPay.config.mailing_address) : strings.shipping_placeholder}</div> 
+			<div id="nano-pay-shipping-label">${html(strings.shipping)}</div>
+			<div id="nano-pay-user-mailing-address" style="opacity: ${window.NanoPay.config.mailing_address && window.NanoPay.config.mailing_address.first_name ? '1' : '0.5'}">${window.NanoPay.config.mailing_address && window.NanoPay.config.mailing_address.first_name ? fullAddress(window.NanoPay.config.mailing_address) : html(strings.shipping_placeholder)}</div>
 			<svg id="Layer_1" version="1.1" viewBox="0 0 512 512" width="512px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><polygon points="160,115.4 180.7,96 352,256 180.7,416 160,396.7 310.5,256 "></polygon></svg> 
 		</div>
 		
 		<div id="nano-pay-details" style="${ config.amount || config.line_items || get_name || get_alias ? '' : 'display: none' }"> 
 			<div style="display: ${config.shipping || config.shipping === 0 || config.shipping === true || config.shipping === "true" ? 'block' : 'none'}" id="nano-pay-details-spacer"></div>
 			<div id="nano-pay-details-labels">
-				<div style="display: ${config.shipping !== true && config.shipping || config.shipping === 0 ? 'block' : 'none'}">${strings.subtotal}</div>  
-				<div style="display: ${config.shipping !== true && config.shipping || config.shipping === 0 ? 'block' : 'none'}">${strings.shipping}</div>  
+				<div style="display: ${config.shipping !== true && config.shipping || config.shipping === 0 ? 'block' : 'none'}">${html(strings.subtotal)}</div>
+				<div style="display: ${config.shipping !== true && config.shipping || config.shipping === 0 ? 'block' : 'none'}">${html(strings.shipping)}</div>
 				<br style="display: ${config.shipping !== true && config.shipping || config.shipping === 0 ? 'block' : 'none'}">
-				<div id="nano-pay-description">${description}</div>
+				<div id="nano-pay-description">${html(description)}</div>
 			</div>  
 			<div id="nano-pay-details-values">
-				<div style="display: ${config.shipping !== true && config.shipping || config.shipping === 0 ? 'block' : 'none'}; text-align: right">${config.amount} ${symbol}</div>   
-				<div id="nano-pay-shipping-amount" style="display: ${config.shipping !== true && config.shipping || config.shipping === 0 ? 'block' : 'none'}; text-align: right">${rpc_checkout.shipping ? rpc_checkout.shipping + ' ' + symbol : 'FREE'}</div>   
+				<div style="display: ${config.shipping !== true && config.shipping || config.shipping === 0 ? 'block' : 'none'}; text-align: right">${html(config.amount)} ${html(symbol)}</div>
+				<div id="nano-pay-shipping-amount" style="display: ${config.shipping !== true && config.shipping || config.shipping === 0 ? 'block' : 'none'}; text-align: right">${rpc_checkout.shipping ? html(rpc_checkout.shipping) + ' ' + html(symbol) : 'FREE'}</div>
 				<br style="display: ${config.shipping !== true && config.shipping || config.shipping === 0 ? 'block' : 'none'}; text-align: right"> 
-				<div id="nano-pay-amount-value">${rpc_checkout.amount} ${symbol}</div>   
+				<div id="nano-pay-amount-value">${html(rpc_checkout.amount)} ${html(symbol)}</div>
 			</div> 
 		</div>
 
 		<div id="nano-pay-details" style="${ rpc_checkout.service_fee || rpc_checkout.service_fee === 0 ? '' : 'display: none' }"> 
 			<div style="display: ${config.shipping || config.shipping === true || config.shipping === "true" ? 'block' : 'none'}" id="nano-pay-details-spacer"></div>
 			<div id="nano-pay-details-labels">
-				<div style="display: ${rpc_checkout.subtotal ? 'block' : 'none'}">${strings.description || 'Amount'}</div>  
-				<div>${strings.service_fee}</div>  
+				<div style="display: ${rpc_checkout.subtotal ? 'block' : 'none'}">${html(strings.description || 'Amount')}</div>
+				<div>${html(strings.service_fee)}</div>
 				<br>
 				<div id="nano-pay-description">Total Amount</div>  
 			</div>  
 			<div id="nano-pay-details-values">
-				<div id="nano-pay-amount-subtotal" style="display: ${rpc_checkout.subtotal ? 'block' : 'none'}; text-align: right">${rpc_checkout.subtotal} ${symbol}</div>   
-				<div style="text-align: right">${rpc_checkout.service_fee} ${symbol}</div>   
+				<div id="nano-pay-amount-subtotal" style="display: ${rpc_checkout.subtotal ? 'block' : 'none'}; text-align: right">${html(rpc_checkout.subtotal)} ${html(symbol)}</div>
+				<div style="text-align: right">${html(rpc_checkout.service_fee)} ${html(symbol)}</div>
 				<br> 
-				<div id="nano-pay-amount-value">${rpc_checkout.amount} ${symbol}</div>   
+				<div id="nano-pay-amount-value">${html(rpc_checkout.amount)} ${html(symbol)}</div>
 			</div> 
 		</div>
 		
 		<div id="nano-pay-disclaimer" style="display: ${config.disclaimer ? 'flex' : 'none'}">
-			<div>${config.disclaimer}</div>
+			<div>${html(config.disclaimer)}</div>
 		</div>
 
 		<div id="nano-pay-qrcode" style="display: none;">
 			<img id="nano-pay-qrcode-image"/>
 			<div id="nano-pay-copy-address">
 				<div class="nano-pay-copy-clipboard" onclick="window.NanoPay.CopyToClipboard('address', this)">
-					<span id="nano-pay-copy-clipboard-address">${rpc_checkout.address.slice(0, config.vanity || 10)}..</span>
+					<span id="nano-pay-copy-clipboard-address">${html(rpc_checkout.address.slice(0, config.vanity || 10))}..</span>
 					<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M6 6V2c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4v4a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h4zm2 0h4a2 2 0 0 1 2 2v4h4V2H8v4zM2 8v10h10V8H2z"/></svg>
 				</div>
 				<div style="${rpc_checkout.amount === undefined ? 'display: none' : ''}" class="nano-pay-copy-clipboard" onclick="window.NanoPay.CopyToClipboard('amount', this)">
-					<span id="nano-pay-copy-clipboard-amount">${String(rpc_checkout.amount).length > 7 ? String(rpc_checkout.amount).slice(0, 7) + '..' : String(rpc_checkout.amount)} ${symbol}</span>
+					<span id="nano-pay-copy-clipboard-amount">${html(String(rpc_checkout.amount).length > 7 ? String(rpc_checkout.amount).slice(0, 7) + '..' : String(rpc_checkout.amount))} ${html(symbol)}</span>
 					<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M6 6V2c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4v4a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h4zm2 0h4a2 2 0 0 1 2 2v4h4V2H8v4zM2 8v10h10V8H2z"/></svg>
 				</div>
 			</div>
@@ -1261,7 +1288,7 @@ const SecurityUtils = {
 
 	    <a id="nano-pay-submit" onclick="window.NanoPay.submit()"> 
 	    	<img id="nano-pay-submit-image" src="${wallets[wallet].image}" style="max-width: 45px;"> 
-	    	<span id="nano-pay-submit-text">${button}</span> 
+			<span id="nano-pay-submit-text">${html(button)}</span>
 	    </a>
 
 		${config.debug ? `
@@ -1284,7 +1311,7 @@ const SecurityUtils = {
 
 		var NanoPayDiv = document.createElement('div');
 		NanoPayDiv.id = 'nano-pay';
-		NanoPayDiv.innerHTML = SecurityUtils.safeTemplateHTML(template);
+		NanoPayDiv.innerHTML = template;
 		document.body.appendChild(NanoPayDiv);
 	    
 	    setTimeout(() => {
@@ -1410,7 +1437,7 @@ const SecurityUtils = {
 	}
 
 	function fullAddress(address) {
-		return `${address.first_name} ${address.last_name} <br> ${address.street_address} ${address.street_address_two} <br> ${address.city}, ${address.state}, ${address.postal_code}, ${address.country}`
+		return `${SecurityUtils.escapeHTML(address.first_name)} ${SecurityUtils.escapeHTML(address.last_name)} <br> ${SecurityUtils.escapeHTML(address.street_address)} ${SecurityUtils.escapeHTML(address.street_address_two)} <br> ${SecurityUtils.escapeHTML(address.city)}, ${SecurityUtils.escapeHTML(address.state)}, ${SecurityUtils.escapeHTML(address.postal_code)}, ${SecurityUtils.escapeHTML(address.country)}`
 	}
 
     function showPaymentView(viewId) {
@@ -1459,7 +1486,7 @@ const SecurityUtils = {
 
 		SecurityUtils.secureStorage.setItem('nano-pay-mailing-address', JSON.stringify(window.NanoPay.config.mailing_address))
 
-		document.getElementById('nano-pay-user-mailing-address').innerHTML = SecurityUtils.sanitizeHTML(fullAddress(window.NanoPay.config.mailing_address))
+		document.getElementById('nano-pay-user-mailing-address').innerHTML = fullAddress(window.NanoPay.config.mailing_address)
 
 		document.getElementById('nano-pay-user-mailing-address').style.opacity = '1'
 
@@ -1619,11 +1646,11 @@ const SecurityUtils = {
 	
             window.NanoPay.el = {}
 
-            var buttonCssContent = `.nano-pay-button { cursor: pointer; width: 100%; box-sizing: border-box; padding: 14px 25px; border: 0; border-radius: 10px; margin: 15px 0 10px 0; display: flex; align-items: center; justify-content: center; gap: 12px; background: #209ce9; font-family: inherit; font-size: 18px; letter-spacing: 1px; min-height: 64px; color: ${config.color || '#FFF'}; } .nano-pay-button img { max-width: 28px; width: 28px; height: 28px; margin: 0!important; float: none; border: 1px solid; border-radius: 50%; }`
+            var buttonCssContent = `.nano-pay-button { cursor: pointer; width: 100%; box-sizing: border-box; padding: 14px 25px; border: 0; border-radius: 10px; margin: 15px 0 10px 0; display: flex; align-items: center; justify-content: center; gap: 12px; background: #209ce9; font-family: inherit; font-size: 18px; letter-spacing: 1px; min-height: 64px; color: ${SecurityUtils.sanitizeColor(config.color, '#FFF')}; } .nano-pay-button img { max-width: 28px; width: 28px; height: 28px; margin: 0!important; float: none; border: 1px solid; border-radius: 50%; }`
 
             addStyleIfNotExists(buttonCssContent);
 
-	        for (var i=0, max=all.length; i < max; i++) {
+			for (let i=0, max=all.length; i < max; i++) {
 
 	            var item = all[i]
 
@@ -1646,9 +1673,15 @@ const SecurityUtils = {
 
 	            all[i].innerHTML = ''
 	            
-	            let code = `<div onclick="window.NanoPay.open('el-${i}')" class="nano-pay-button"><img src="https://cdn.nano.to/img/xno.svg" alt="">${ SecurityUtils.sanitizeHTML(original_text || 'Pay with Nano') }</div></div>`
-
-	            item.innerHTML += SecurityUtils.safeTemplateHTML(code)
+	            let button = document.createElement('div')
+	            button.className = 'nano-pay-button'
+	            let icon = document.createElement('img')
+	            icon.src = 'https://cdn.nano.to/img/xno.svg'
+	            icon.alt = ''
+	            button.appendChild(icon)
+	            button.appendChild(document.createTextNode(original_text || 'Pay with Nano'))
+	            button.addEventListener('click', () => window.NanoPay.open(`el-${i}`))
+	            item.appendChild(button)
 
 				window.NanoPay.el[i] = config
 
